@@ -2,6 +2,10 @@ module com.example.demomart {
     requires javafx.controls;
     requires javafx.fxml;
     requires static lombok;
+    requires com.fasterxml.jackson.core;
+    requires com.fasterxml.jackson.annotation;
+    requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.dataformat.xml;
 
 
     opens com.example.demomart to javafx.fxml;

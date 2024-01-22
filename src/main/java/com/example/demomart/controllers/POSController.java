@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
@@ -27,6 +28,8 @@ public class POSController implements Initializable {
     @FXML
     private Label subtotalText;
     @FXML
+    private Label discountText;
+    @FXML
     private Label taxText;
     @FXML
     private Label totalText;
@@ -37,6 +40,7 @@ public class POSController implements Initializable {
 
     @FXML
     private Button drawerBtn;
+
     Drawer drawer = new Drawer();
 
     @Override
@@ -45,6 +49,8 @@ public class POSController implements Initializable {
         productPriceCol.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
         productQtyCol.setCellValueFactory(new PropertyValueFactory<>("qty"));
         transactionTable.setItems(Cart.getAllCartItems());
+
+
     }
 
     public void onVoidItemsClick() {
@@ -55,7 +61,7 @@ public class POSController implements Initializable {
                     Cart.voidProduct(productSelected.getBarcode());
                     updateTotals();
                 }
-            } catch (NullPointerException e) {
+            } catch (NullPointerException | IOException e) {
                 e.printStackTrace();
             }
         }
@@ -69,18 +75,25 @@ public class POSController implements Initializable {
                     Cart.voidCart();
                     updateTotals();
                 }
-            } catch (NullPointerException e) {
+            } catch (NullPointerException | IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public void onScan(KeyEvent e) {
+    public void onScan(KeyEvent e) throws IOException {
+        Cart.addCartItem(Product.builder()
+                .barcode("12334")
+                .name("poop")
+                .qty(1)
+                .unitPrice(BigDecimal.valueOf(20.33))
+                .build());
         updateTotals();
+
     }
 
-    public void onNextDollarClick() {
-        if(!Cart.getAllCartItems().isEmpty()) {
+    public void onNextDollarClick() throws IOException {
+        if (!Cart.getAllCartItems().isEmpty()){
             BigDecimal total = Cart.getTotal();
             BigDecimal cash = total.setScale(0, RoundingMode.CEILING); // Round up to the next dollar
 
@@ -91,7 +104,7 @@ public class POSController implements Initializable {
         }
     }
 
-    public void onExactDollarClick() {
+    public void onExactDollarClick() throws IOException {
         if(!Cart.getAllCartItems().isEmpty()) {
             BigDecimal total = Cart.getTotal();
             BigDecimal cash = total;
@@ -107,7 +120,7 @@ public class POSController implements Initializable {
         dueAmountText.setText("$" + String.format("%.2f", change));
     }
 
-    public void onDrawerBtnClick() {
+    public void onDrawerBtnClick() throws IOException {
         handleDrawer(false);
         updateTotals();
     }
@@ -122,13 +135,15 @@ public class POSController implements Initializable {
         drawer.logDrawerEvent(isOpen);
     }
 
-    public void updateTotals() {
+    public void updateTotals() throws IOException {
         BigDecimal subtotal = Cart.getCartSubtotal();
         BigDecimal taxAmount = Cart.getTaxAmount();
         BigDecimal total = Cart.getTotal();
 
+
         // Update UI labels
         subtotalText.setText("$" + String.format("%.2f", subtotal));
+        discountText.setText("$-" + String.format("%.2f",  Cart.getCartDiscount()));
         taxText.setText("$" + String.format("%.2f", taxAmount));
         totalText.setText("$" + String.format("%.2f", total));
 

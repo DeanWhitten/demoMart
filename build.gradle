@@ -39,15 +39,20 @@ javafx {
 
 dependencies {
 
+
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
     runtimeOnly 'com.h2database:h2:2.2.222'
 
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.16.0'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
 
     testCompileOnly "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+
 }
 
 test {

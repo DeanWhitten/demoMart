@@ -5,9 +5,11 @@ import com.example.demomart.dataCollections.VirtualJournal;
 import com.example.demomart.models.Product;
 import com.example.demomart.models.Transaction;
 import com.example.demomart.models.VirtualJournalEntry;
+import com.example.demomart.utils.PortalAPICaller;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -60,23 +62,29 @@ import java.util.Objects;
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 
+        public static BigDecimal getCartDiscount() throws IOException {
+           //BigDecimal subtotal = getCartSubtotal();
+           return PortalAPICaller.getDiscountFromPortal(getCartSubtotal());
+        }
+
         public static BigDecimal getTaxAmount() {
             BigDecimal subtotal = getCartSubtotal();
             BigDecimal taxRate = BigDecimal.valueOf(0.07);
             return subtotal.multiply(taxRate).setScale(2, RoundingMode.HALF_UP);
         }
 
-        public static BigDecimal getTotal() {
+        public static BigDecimal getTotal() throws IOException {
             BigDecimal subtotal = getCartSubtotal();
             BigDecimal taxAmount = getTaxAmount();
-            return subtotal.add(taxAmount).setScale(2, RoundingMode.HALF_UP);
+            return subtotal.subtract(getCartDiscount()).add(taxAmount).setScale(2, RoundingMode.HALF_UP);
         }
 
-        public static void completeTransaction(BigDecimal cash) {
+        public static void completeTransaction(BigDecimal cash) throws IOException {
             Transaction transaction = Transaction.builder()
                     .purchasedProducts(new ArrayList<>(getAllCartItems()))
                     .purchasedProductsQty(getAllCartItems().size())
                     .subtotal(getCartSubtotal())
+                    .discountAmount(getCartDiscount())
                     .taxAmount(getTaxAmount())
                     .grandTotal(getTotal())
                     .cash(cash)
@@ -92,8 +100,8 @@ import java.util.Objects;
             TransactionLog.logTransaction(transaction);
         }
 
-        public static BigDecimal getCalculatedChange(BigDecimal cash) {
+        public static BigDecimal getCalculatedChange(BigDecimal cash) throws IOException {
             BigDecimal grandTotal = getTotal();
-            return cash.subtract(grandTotal).setScale(2, RoundingMode.HALF_UP);
+            return cash.subtract(grandTotal).setScale(2, RoundingMode.HALF_UP).add(getCartDiscount());
         }
     }
